@@ -30,8 +30,8 @@ IMAGE_EXTENSIONS = (".png", ".jpg", ".jpeg", ".bmp", ".tiff", ".tif")
 
 def main():
     model_name = "microsoft/trocr-base-handwritten"
-    dataset_folder = os.path.join("dataset", "val2")
-    manifest_csv = os.path.join("dataset", "split_manifest1.csv")
+    dataset_folder = os.path.join("dataset", "test")
+    manifest_csv = os.path.join("dataset", "manifest.csv")
 
     print("=" * 50)
     print("TrOCR HANDWRITTEN TEXT RECOGNITION TEST")

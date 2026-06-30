@@ -4,9 +4,9 @@ Fine-tunes TrOCR (microsoft/trocr-base-handwritten) on your handwritten names da
 
 Dataset structure expected:
   dataset/
-    split_manifest.csv               (filename,label,split,source)
+    manifest.csv                     (filename,label,split,...)
     train/syn_000001.png ...
-    val/syn_000004.png ...
+    val/syn_000002.png ...
 
 Usage:
   python train_trocr.py
@@ -47,7 +47,7 @@ from torch.cuda.amp import GradScaler, autocast
 MODEL_NAME = "microsoft/trocr-base-handwritten"
 
 # Paths
-MANIFEST_CSV = os.path.join("dataset", "split_manifest.csv")
+MANIFEST_CSV = os.path.join("dataset", "manifest.csv")
 TRAIN_IMG_DIR = os.path.join("dataset", "train")
 VAL_IMG_DIR = os.path.join("dataset", "val")
 
@@ -172,13 +172,22 @@ def main():
     processor = TrOCRProcessor.from_pretrained(MODEL_NAME, local_files_only=True)
     model = VisionEncoderDecoderModel.from_pretrained(MODEL_NAME, local_files_only=True)
 
-    # Configure model for fine-tuning
-    model.config.decoder_start_token_id = processor.tokenizer.cls_token_id
+    # Configure model for fine-tuning.
+    # IMPORTANT: TrOCR is pretrained to start decoding from the EOS/SEP token
+    # (id 2), NOT the CLS token (id 0). Overriding decoder_start_token_id with
+    # cls_token_id trains the decoder under one convention while generate()
+    # uses another (the generation_config keeps id 2), which produces garbage
+    # output at inference (CER/WER blow up). Keep the pretrained convention and
+    # sync model.config and generation_config so training == inference.
+    model.config.decoder_start_token_id = processor.tokenizer.sep_token_id
     model.config.pad_token_id = processor.tokenizer.pad_token_id
     model.config.vocab_size = model.config.decoder.vocab_size
     model.config.eos_token_id = processor.tokenizer.sep_token_id
 
-    # Set max_length in generation_config (not model.config)
+    # Keep generation_config consistent with the training-time config.
+    model.generation_config.decoder_start_token_id = model.config.decoder_start_token_id
+    model.generation_config.eos_token_id = model.config.eos_token_id
+    model.generation_config.pad_token_id = model.config.pad_token_id
     model.generation_config.max_length = MAX_LABEL_LENGTH
 
     model.to(device)

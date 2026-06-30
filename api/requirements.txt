@@ -1,0 +1,3 @@
+# OCR API dependencies (in addition to the project's torch/transformers/Pillow)
+flask
+flask-cors

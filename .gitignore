@@ -23,3 +23,6 @@ dataset/
 # OS / editor
 .DS_Store
 Thumbs.db
+
+# Web prototype — generated saved documents
+web/saved_docs/

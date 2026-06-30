@@ -1,0 +1,213 @@
+/* Custom component styles. Plain CSS, because the Tailwind Play CDN does not
+   process @apply in external stylesheets. Colors mirror the brand (teal) +
+   slate palette configured in index.php. */
+
+:root {
+  --brand-50:  #f0fdfa;
+  --brand-100: #ccfbf1;
+  --brand-600: #0d9488;
+  --brand-700: #0f766e;
+  --brand-800: #115e59;
+  --brand-900: #134e4a;
+  --slate-50:  #f8fafc;
+  --slate-100: #f1f5f9;
+  --slate-200: #e2e8f0;
+  --slate-300: #cbd5e1;
+  --slate-500: #64748b;
+  --slate-700: #334155;
+}
+
+/* ---- Buttons ---- */
+.btn-primary,
+.btn-secondary,
+.btn-ghost,
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color .15s ease, color .15s ease, border-color .15s ease;
+}
+.btn-primary {
+  background: var(--brand-700);
+  color: #fff;
+  border: 1px solid var(--brand-700);
+}
+.btn-primary:hover { background: var(--brand-800); border-color: var(--brand-800); }
+.btn-primary:active { background: var(--brand-900); }
+.btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+
+.btn-secondary {
+  background: #fff;
+  color: var(--slate-700);
+  border: 1px solid var(--slate-300);
+}
+.btn-secondary:hover { background: var(--slate-50); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--slate-500);
+  border: 1px solid transparent;
+}
+.btn-ghost:hover { background: var(--slate-100); }
+
+.btn-danger {
+  background: #fff;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+.btn-danger:hover { background: #fef2f2; }
+
+/* ---- Sidebar nav ---- */
+.nav-btn { color: var(--slate-700); }
+.nav-btn:hover { background: var(--slate-100); }
+.nav-btn.active { background: var(--brand-50); color: var(--brand-800); }
+
+/* ---- Document type picker ---- */
+.doctype-btn { transition: border-color .15s ease, background-color .15s ease; }
+.doctype-btn:hover { border-color: var(--slate-300); background: var(--slate-50); }
+.doctype-btn.active {
+  border-color: var(--brand-600) !important;
+  background: var(--brand-50);
+  box-shadow: 0 0 0 3px var(--brand-100);
+}
+
+/* ---- Dropzone ---- */
+.dropzone:hover { border-color: var(--slate-300); background: var(--slate-50); }
+.dropzone.dragover {
+  border-color: var(--brand-600);
+  background: var(--brand-50);
+}
+
+/* ---- Metric cards ---- */
+.metric-card {
+  background: #fff;
+  border: 1px solid var(--slate-200);
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+}
+.metric-label {
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+}
+.metric-value {
+  margin-top: 0.25rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #0f172a;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Field boxes on the document ---- */
+.field-box {
+  position: absolute;
+  border: 2px solid var(--brand-600);
+  background: rgba(13, 148, 136, 0.10);
+  border-radius: 4px;
+  cursor: move;
+  box-sizing: border-box;
+}
+.field-box.selected {
+  box-shadow: 0 0 0 3px var(--brand-100);
+}
+.field-box .field-tag {
+  position: absolute;
+  top: -22px;
+  left: -2px;
+  background: var(--brand-700);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 3px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  user-select: none;
+  pointer-events: none;
+}
+.field-box .field-remove {
+  position: absolute;
+  top: -22px;
+  right: -2px;
+  background: #e11d48;
+  color: #fff;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
+  cursor: pointer;
+  display: none;
+}
+.field-box:hover .field-remove { display: block; }
+.field-box .resize-handle {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  width: 12px;
+  height: 12px;
+  background: var(--brand-700);
+  border: 2px solid #fff;
+  border-radius: 3px;
+  cursor: nwse-resize;
+}
+
+/* ---- Saved list item ---- */
+.saved-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.saved-item:hover { background: var(--slate-100); }
+.saved-item.active { background: var(--brand-50); border-color: var(--brand-100); }
+
+/* ---- Comparison rows ---- */
+.compare-row {
+  display: grid;
+  grid-template-columns: 200px 1fr 1fr;
+  border-top: 1px solid var(--slate-200);
+}
+.compare-row:first-child { border-top: none; }
+.crop-img {
+  max-height: 56px;
+  border: 1px solid var(--slate-200);
+  border-radius: 4px;
+  background: #fff;
+}
+.verify-input {
+  width: 100%;
+  border: 1px solid var(--slate-300);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.95rem;
+  color: #0f172a;
+}
+.verify-input:focus {
+  outline: none;
+  border-color: var(--brand-600);
+  box-shadow: 0 0 0 3px var(--brand-100);
+}
+
+/* confidence pill */
+.conf-pill {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 9999px;
+}
+.conf-high { background: var(--brand-100); color: var(--brand-800); }
+.conf-mid  { background: #fef3c7; color: #92400e; }
+.conf-low  { background: #fee2e2; color: #991b1b; }

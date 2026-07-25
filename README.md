@@ -9,6 +9,7 @@ Fine-tune Microsoft's [TrOCR](https://huggingface.co/microsoft/trocr-base-handwr
 - Dependency-free CER / WER / exact-match metrics, plus saved bar-chart PNGs
 - Batch prediction over a folder of images (no labels required)
 - Baseline evaluation of the original model for before/after comparison
+- Web UI (Civil Records Digitizer) to scan certificates and manage models (add / rename / delete)
 
 ## Project Structure
 
@@ -23,10 +24,19 @@ Fine-tune Microsoft's [TrOCR](https://huggingface.co/microsoft/trocr-base-handwr
 ├── requirements.txt
 ├── Evaluation Metrics/   # Saved metric charts (base/ and finetuned/)
 ├── dataset/              # Your images + label CSVs (not tracked in git)
-└── trocr-finetuned/      # Saved fine-tuned model (not tracked in git)
+├── Models/               # All fine-tuned models, one folder each (not tracked in git)
+│   ├── trocr-finetuned/
+│   └── v2-finetuned-model/
+├── api/                  # Flask OCR API that serves the models to the web app
+│   ├── app.py
+│   └── requirements.txt
+└── web/                  # PHP + JS frontend (Civil Records Digitizer)
+    ├── index.php
+    ├── css/ , js/
+    └── *.php             # save/list/delete saved documents
 ```
 
-> Note: `dataset/`, `trocr-finetuned/`, and `venv/` are intentionally excluded from the repo via `.gitignore` because of their size. See [Model & Data](#model--data) below.
+> Note: `dataset/`, `Models/`, and `venv/` are intentionally excluded from the repo via `.gitignore` because of their size. See [Model & Data](#model--data) below.
 
 ## Setup
 
@@ -90,7 +100,7 @@ Runs the original model over your evaluation images and saves a chart to `Evalua
 python train_trocr.py
 ```
 
-Hyperparameters live in the `CONFIG` section near the top of `train_trocr.py` (epochs, batch size, learning rate, max label length, output dir). The best checkpoint by validation loss is saved to `trocr-finetuned/`.
+Hyperparameters live in the `CONFIG` section near the top of `train_trocr.py` (epochs, batch size, learning rate, max label length, output dir). The best checkpoint by validation loss is saved to `Models/trocr-finetuned/`.
 
 ### 4. Evaluate the fine-tuned model
 
@@ -109,6 +119,79 @@ python predict.py --folder path/to/images  # custom folder
 
 Predictions are printed and written to a `predictions.csv` inside the image folder.
 
+## Web App — Civil Records Digitizer
+
+A browser UI for digitizing scanned certificates: upload a scan, mark the fields,
+run the fine-tuned model on each field, verify the text, and save the result.
+It has two parts that run at the same time:
+
+- **Flask OCR API** (`api/app.py`) — serves the models on `http://127.0.0.1:5000`
+- **PHP frontend** (`web/`) — the UI, served by Apache (XAMPP) or PHP's built-in server
+
+### 1. Install the API dependencies
+
+```bash
+venv\Scripts\activate
+pip install -r api\requirements.txt   # flask + flask-cors (in addition to torch/transformers)
+```
+
+### 2. Start the OCR API
+
+```bash
+python api\app.py
+```
+
+Leave it running. It loads models lazily from `Models/` on first use and falls
+back to the base `microsoft/trocr-base-handwritten` model if no folder is found.
+
+### 3. Serve the frontend
+
+Option A — XAMPP (Apache). Add an alias so Apache serves the `web/` folder in
+place. Create `C:\xampp\apache\conf\extra\httpd-civilrecords.conf`:
+
+```apache
+Alias /civil-records "C:/path/to/repo/web"
+<Directory "C:/path/to/repo/web">
+    Options Indexes FollowSymLinks
+    AllowOverride All
+    Require all granted
+    DirectoryIndex index.php
+</Directory>
+```
+
+Then add `Include conf/extra/httpd-civilrecords.conf` to
+`C:\xampp\apache\conf\httpd.conf`, restart Apache, and open
+`http://localhost/civil-records`.
+
+Option B — PHP built-in server (no XAMPP):
+
+```bash
+php -S localhost:8000 -t web
+```
+
+Then open `http://localhost:8000`.
+
+### Managing models from the UI
+
+The sidebar has an **OCR Model** dropdown plus controls to manage the folders in
+`Models/` without touching the filesystem:
+
+- **+ Add** — upload a model folder (must contain `config.json`,
+  `model.safetensors`, and the tokenizer files). The upload goes through the
+  Flask API, which streams large weight files to disk, then saves the model to
+  `Models/<name>/`.
+- **Rename** — rename the selected model's folder.
+- **Delete** — permanently remove the selected model's folder from disk.
+- **↻ Rescan** — re-scan `Models/` (useful if you added a folder manually).
+- The base model is always available and cannot be renamed or deleted.
+
+Any folder dropped into `Models/` is auto-discovered — no restart needed. The
+API endpoints backing these actions are `/models`, `/ocr`, `/add_model`,
+`/rename_model`, and `/delete_model`.
+
+> Security note: the API and PHP endpoints have no authentication. Run them on
+> `localhost` only — do not expose this prototype to a network.
+
 ## Metrics
 
 `metrics.py` computes corpus-level scores:
@@ -121,7 +204,7 @@ Each evaluation also exports a timestamped PNG bar chart under `Evaluation Metri
 
 ## Model & Data
 
-The fine-tuned model (`trocr-finetuned/`, ~1.3 GB) and the `dataset/` folder are not stored in this repo because they exceed GitHub's file-size limits. To share them, consider:
+The fine-tuned models (`Models/`, ~1.3 GB each) and the `dataset/` folder are not stored in this repo because they exceed GitHub's file-size limits. To share them, consider:
 
 - Pushing the model to the [Hugging Face Hub](https://huggingface.co/docs/hub/models-uploading)
 - Tracking large files with [Git LFS](https://git-lfs.com/)
@@ -132,8 +215,8 @@ The fine-tuned model (`trocr-finetuned/`, ~1.3 GB) and the `dataset/` folder are
 To keep training from an existing fine-tuned checkpoint instead of the base model, point the loaders in `train_trocr.py` at your saved directory:
 
 ```python
-processor = TrOCRProcessor.from_pretrained("trocr-finetuned", local_files_only=True)
-model = VisionEncoderDecoderModel.from_pretrained("trocr-finetuned", local_files_only=True)
+processor = TrOCRProcessor.from_pretrained("Models/trocr-finetuned", local_files_only=True)
+model = VisionEncoderDecoderModel.from_pretrained("Models/trocr-finetuned", local_files_only=True)
 ```
 
 When continuing, a lower learning rate and mixing in earlier data help reduce catastrophic forgetting.

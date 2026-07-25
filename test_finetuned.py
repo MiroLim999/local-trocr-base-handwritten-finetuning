@@ -27,7 +27,7 @@ from metrics import compute_metrics, print_metrics, save_metrics_png
 # ============================================================
 # CONFIG
 # ============================================================
-FINETUNED_DIR = "trocr-finetuned"        # Path to your fine-tuned model
+FINETUNED_DIR = os.path.join("Models", "trocr-finetuned")  # Path to your fine-tuned model
 MANIFEST_CSV = os.path.join("dataset", "manifest.csv")
 TEST_IMG_DIR = os.path.join("dataset", "test")   # Folder of images to evaluate
 NUM_SAMPLES = 6000

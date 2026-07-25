@@ -36,7 +36,7 @@ from transformers import TrOCRProcessor, VisionEncoderDecoderModel
 # CONFIG
 # ============================================================
 # FINETUNED_DIR = "microsoft/trocr-base-handwritten" # Default Model
-FINETUNED_DIR = "trocr-finetuned"         # Path to your fine-tuned model
+FINETUNED_DIR = os.path.join("Models", "trocr-finetuned")  # Path to your fine-tuned model
 DEFAULT_FOLDER = "new_images"             # Default folder for new images
 # ============================================================
 

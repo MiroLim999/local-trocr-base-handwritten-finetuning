@@ -76,9 +76,26 @@
         <p class="px-3 py-6 text-sm text-slate-400 text-center">No saved documents yet.</p>
       </div>
 
-      <div class="px-5 py-3 border-t border-slate-200 flex items-center gap-2 text-xs">
-        <span id="apiDot" class="h-2 w-2 rounded-full bg-slate-300"></span>
-        <span id="apiStatus" class="text-slate-500">Checking OCR engine…</span>
+      <div class="mt-auto">
+        <div class="px-5 pt-3 pb-2 border-t border-slate-200">
+          <div class="flex items-center justify-between mb-1.5">
+            <label for="modelSelect" class="block text-xs font-semibold uppercase tracking-wider text-slate-400">OCR Model</label>
+            <div class="flex items-center gap-2">
+              <button id="rescanModelsBtn" title="Rescan the Models folder" class="text-xs font-medium text-slate-400 hover:text-slate-600">↻</button>
+              <button id="renameModelBtn" title="Rename the selected model" class="text-xs font-medium text-slate-500 hover:text-slate-700">Rename</button>
+              <button id="deleteModelBtn" title="Delete the selected model" class="text-xs font-medium text-red-500 hover:text-red-700">Delete</button>
+              <button id="addModelBtn" class="text-xs font-medium text-brand-700 hover:text-brand-800">+ Add</button>
+            </div>
+          </div>
+          <select id="modelSelect" class="w-full text-sm rounded-lg border border-slate-200 px-2.5 py-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+            <option value="">Loading…</option>
+          </select>
+        </div>
+
+        <div class="px-5 py-3 border-t border-slate-200 flex items-center gap-2 text-xs">
+          <span id="apiDot" class="h-2 w-2 rounded-full bg-slate-300"></span>
+          <span id="apiStatus" class="text-slate-500">Checking OCR engine…</span>
+        </div>
       </div>
     </aside>
 
@@ -212,6 +229,95 @@
 
       </div>
     </main>
+  </div>
+
+  <!-- Add-model modal -->
+  <div id="addModelModal" class="fixed inset-0 bg-slate-900/40 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-xl w-full max-w-md shadow-xl">
+      <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-slate-900">Add a model</h3>
+        <button id="addModelClose" class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
+      </div>
+      <div class="px-6 py-5 space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Model name</label>
+          <input id="addModelName" type="text" placeholder="e.g. v3-finetuned-model"
+                 class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Model folder</label>
+          <p class="text-xs text-slate-500 mb-2">
+            Select the folder containing <span class="font-mono">config.json</span>,
+            <span class="font-mono">model.safetensors</span>, and the tokenizer files.
+          </p>
+
+          <label id="addModelDrop" for="addModelFiles"
+                 class="dropzone flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 px-6 py-8 text-center cursor-pointer transition hover:border-brand-400 hover:bg-brand-50/40">
+            <svg class="h-9 w-9 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z"/>
+            </svg>
+            <p id="addModelDropTitle" class="mt-2 text-sm font-medium text-slate-700">Choose model folder</p>
+            <p class="text-xs text-slate-500">Click to browse for the folder on your computer</p>
+          </label>
+          <input id="addModelFiles" type="file" webkitdirectory directory multiple class="hidden" />
+
+          <div id="addModelSummary" class="hidden mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+            <div class="flex items-center justify-between gap-2">
+              <span id="addModelBadge" class="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full"></span>
+              <span id="addModelMeta" class="text-xs text-slate-500 shrink-0"></span>
+            </div>
+            <ul id="addModelFileList" class="mt-2 text-xs space-y-1 max-h-36 overflow-y-auto"></ul>
+          </div>
+        </div>
+        <div id="addModelProgress" class="hidden">
+          <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+            <div id="addModelBar" class="h-full bg-brand-500 w-0 transition-all"></div>
+          </div>
+          <p id="addModelStatus" class="text-xs text-slate-500 mt-1">Uploading…</p>
+        </div>
+      </div>
+      <div class="px-6 py-4 border-t border-slate-200 flex justify-end gap-2">
+        <button id="addModelCancel" class="btn-ghost">Cancel</button>
+        <button id="addModelSubmit" class="btn-primary">Upload &amp; add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rename-model modal -->
+  <div id="renameModal" class="fixed inset-0 bg-slate-900/40 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-xl w-full max-w-md shadow-xl">
+      <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-slate-900">Rename model</h3>
+        <button id="renameClose" class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
+      </div>
+      <div class="px-6 py-5 space-y-2">
+        <label class="block text-sm font-medium text-slate-700">New name</label>
+        <p class="text-xs text-slate-500">Renames the folder <span id="renameOldName" class="font-mono text-slate-600"></span> under <span class="font-mono">Models/</span>.</p>
+        <input id="renameInput" type="text"
+               class="w-full text-sm rounded-lg border border-slate-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500" />
+      </div>
+      <div class="px-6 py-4 border-t border-slate-200 flex justify-end gap-2">
+        <button id="renameCancel" class="btn-ghost">Cancel</button>
+        <button id="renameSubmit" class="btn-primary">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Generic confirm modal (used for delete) -->
+  <div id="confirmModal" class="fixed inset-0 bg-slate-900/40 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-xl w-full max-w-md shadow-xl">
+      <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+        <h3 id="confirmTitle" class="text-lg font-semibold text-slate-900">Are you sure?</h3>
+        <button id="confirmClose" class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
+      </div>
+      <div class="px-6 py-5">
+        <p id="confirmMessage" class="text-sm text-slate-600 leading-relaxed"></p>
+      </div>
+      <div class="px-6 py-4 border-t border-slate-200 flex justify-end gap-2">
+        <button id="confirmCancel" class="btn-ghost">Cancel</button>
+        <button id="confirmOk" class="btn-danger">Delete</button>
+      </div>
+    </div>
   </div>
 
   <!-- Toast -->

@@ -64,7 +64,7 @@ TRAIN_SUBSET = None          # Use first N training samples (None = all)
 VAL_SUBSET = None            # Use first N validation samples (None = all)
 
 # Output
-SAVE_DIR = "trocr-finetuned"  # Where to save the fine-tuned model
+SAVE_DIR = os.path.join("Models", "trocr-finetuned")  # Where to save the fine-tuned model
 # ============================================================
 
 
